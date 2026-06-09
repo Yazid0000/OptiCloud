@@ -1,0 +1,19 @@
+# Fichiers de logs
+*.log
+
+# Configuration locale
+.env
+
+# VS Code
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Dossiers d'upload
+uploads/
+
+# Cache
+cache/
+tmp/
