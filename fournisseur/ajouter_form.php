@@ -1,76 +1,79 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <title>Ajouter Fournisseur</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container mt-5">
-    <div class="card shadow col-md-7 mx-auto">
-        <div class="card-header bg-success text-white">
-            <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Ajouter un Fournisseur</h4>
-        </div>
-        <div class="card-body">
-            <!-- L'ID est AUTO_INCREMENT, il n'est pas saisi manuellement -->
-            <form method="post" action="fournisseur_add.php">
+<?php
+require("../auth.php");
+require("../connexion.php");
 
+$page_title      = "Ajouter un fournisseur";
+$page_breadcrumb = "Fournisseurs / <span>Ajouter</span>";
+
+$erreur = "";
+$succes = "";
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nom   = isset($_POST['nom_fournisseur'])   ? trim($_POST['nom_fournisseur'])   : '';
+    $tel   = isset($_POST['tel_fournisseur'])   ? trim($_POST['tel_fournisseur'])   : '';
+    $email = isset($_POST['email_fournisseur']) ? trim($_POST['email_fournisseur']) : '';
+    $ville = isset($_POST['ville_fournisseur']) ? trim($_POST['ville_fournisseur']) : '';
+
+    if ($nom === '') {
+        $erreur = "Le nom du fournisseur est obligatoire.";
+    } else {
+        $nom_s   = mysqli_real_escape_string($con, $nom);
+        $tel_s   = mysqli_real_escape_string($con, $tel);
+        $email_s = mysqli_real_escape_string($con, $email);
+        $ville_s = mysqli_real_escape_string($con, $ville);
+        mysqli_query($con, "INSERT INTO fournisseur (nom_fournisseur, tel_fournisseur, email_fournisseur, ville_fournisseur)
+                            VALUES ('$nom_s','$tel_s','$email_s','$ville_s')");
+        $succes = "Fournisseur ajouté avec succès.";
+    }
+}
+
+require("../layout.php");
+?>
+
+<div style="max-width:600px;">
+    <div class="card-dark">
+        <div class="card-header"><i class="bi bi-plus-circle me-2"></i>Nouveau fournisseur</div>
+        <div style="padding:20px;">
+
+            <?php if ($erreur): ?>
+                <div class="alert-dark-danger mb-3"><?php echo $erreur; ?></div>
+            <?php endif; ?>
+            <?php if ($succes): ?>
+                <div class="alert-dark-success mb-3"><?php echo $succes; ?></div>
+            <?php endif; ?>
+
+            <form method="POST" class="form-dark">
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Nom <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-building"></i></span>
-                        <input type="text" name="nom" class="form-control" placeholder="Nom du fournisseur" required>
-                    </div>
+                    <label class="form-label">Nom du fournisseur *</label>
+                    <input type="text" name="nom_fournisseur" class="form-control"
+                           placeholder="Ex: Essilor Maroc" autofocus>
                 </div>
-
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Responsable <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" name="responsable" class="form-control" placeholder="Nom du responsable" required>
-                    </div>
+                    <label class="form-label">Téléphone</label>
+                    <input type="text" name="tel_fournisseur" class="form-control"
+                           placeholder="Ex: 0522 000 000">
                 </div>
-
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Adresse</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                        <input type="text" name="adresse" class="form-control" placeholder="Adresse complète">
-                    </div>
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email_fournisseur" class="form-control"
+                           placeholder="Ex: contact@fournisseur.ma">
                 </div>
-
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Ville</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-pin-map"></i></span>
-                        <input type="text" name="ville" class="form-control" placeholder="Ville">
-                    </div>
+                    <label class="form-label">Ville</label>
+                    <input type="text" name="ville_fournisseur" class="form-control"
+                           placeholder="Ex: Casablanca">
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Téléphone</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                        <input type="text" name="telephone" class="form-control" placeholder="0522xxxxxx">
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Email</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        <input type="email" name="email" class="form-control" placeholder="contact@exemple.ma">
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between">
-                    <a href="fournisseur_list.php" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
-                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Enregistrer</button>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary-dark">
+                        <i class="bi bi-check-lg"></i> Enregistrer
+                    </button>
+                    <a href="fournisseur_list.php" class="btn-secondary-dark">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </a>
                 </div>
             </form>
         </div>
     </div>
 </div>
-</body>
-</html>
+
+<?php require("../layout_end.php"); ?>

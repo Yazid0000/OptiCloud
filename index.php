@@ -1,162 +1,123 @@
-<?php require("auth.php"); ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <title>OPTI CLOUD - Gestion Cabinet Opticien</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body { background: #f0f4f8; }
-        .navbar-brand { font-weight: 800; letter-spacing: 1px; }
-        .card-module { transition: transform .2s, box-shadow .2s; border: none; border-radius: 16px; }
-        .card-module:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,.12); }
-        .icon-box { font-size: 2.8rem; }
-        .hero { background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); color: white; border-radius: 20px; padding: 40px; margin-bottom: 40px; }
-    </style>
-</head>
-<body>
+<?php
+require("auth.php");
+require("connexion.php");
 
-<!-- Navbar -->
-<nav class="navbar navbar-dark bg-primary shadow-sm">
-    <div class="container">
-        <a class="navbar-brand" href="index.php">
-            <i class="bi bi-eyeglasses me-2"></i>OPTI CLOUD
-        </a>
-        <span class="text-white-50 small d-none d-md-inline">Système de gestion cabinet opticien</span>
-<div class="d-flex align-items-center gap-2">
-    <span class="text-white-50 small">
-        <i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($_SESSION['user_nom']) ?>
-    </span>
-    <a href="logout.php" class="btn btn-outline-light btn-sm">
-        <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
-    </a>
-</div>
+$page_title      = "Tableau de bord";
+$page_breadcrumb = "Accueil / <span>Dashboard</span>";
+
+$res = mysqli_fetch_row(mysqli_query($con, "SELECT COUNT(*) FROM patient"));
+$nb_patients = $res[0];
+
+$res = mysqli_fetch_row(mysqli_query($con, "SELECT COUNT(*) FROM rendezvous WHERE date_rdv = CURDATE()"));
+$nb_rdv = $res[0];
+
+$res = mysqli_fetch_row(mysqli_query($con, "SELECT COALESCE(SUM(montant_total),0) FROM vente WHERE date_vente = CURDATE()"));
+$ventes_jour = $res[0];
+
+$res1 = mysqli_fetch_row(mysqli_query($con, "SELECT COUNT(*) FROM monture WHERE stock < 5"));
+$res2 = mysqli_fetch_row(mysqli_query($con, "SELECT COUNT(*) FROM verre WHERE stock < 5"));
+$res3 = mysqli_fetch_row(mysqli_query($con, "SELECT COUNT(*) FROM lentille WHERE stock < 5"));
+$nb_stock_faible = $res1[0] + $res2[0] + $res3[0];
+
+require("layout.php");
+?>
+
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="stat-label"><i class="bi bi-people me-1"></i>Patients</div>
+        <div class="stat-value"><?php echo $nb_patients; ?></div>
+        <div class="stat-sub">Total enregistrés</div>
     </div>
-</nav>
-
-<div class="container mt-4">
-
-    <!-- Hero -->
-    <div class="hero shadow">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="fw-bold mb-2"><i class="bi bi-eyeglasses me-2"></i>Bienvenue sur OPTI CLOUD</h1>
-                <p class="lead mb-0 opacity-75">Gérez votre cabinet d'opticien : stock, marques, verres, montures, lentilles et opticiens.</p>
-            </div>
-            <div class="col-md-4 text-end d-none d-md-block">
-                <i class="bi bi-eye" style="font-size:6rem; opacity:.3;"></i>
-            </div>
+    <div class="stat-card">
+        <div class="stat-label"><i class="bi bi-cart3 me-1"></i>Ventes du jour</div>
+        <div class="stat-value"><?php echo number_format($ventes_jour, 2); ?> DH</div>
+        <div class="stat-sub">Aujourd'hui</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label"><i class="bi bi-calendar-check me-1"></i>RDV aujourd'hui</div>
+        <div class="stat-value"><?php echo $nb_rdv; ?></div>
+        <div class="stat-sub">Rendez-vous du jour</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label"><i class="bi bi-exclamation-triangle me-1"></i>Stock faible</div>
+        <div class="stat-value"><?php echo $nb_stock_faible; ?></div>
+        <div class="stat-sub <?php echo $nb_stock_faible > 0 ? 'warn' : ''; ?>">
+            <?php echo $nb_stock_faible > 0 ? 'À réapprovisionner' : 'Stock OK'; ?>
         </div>
     </div>
-
-    <!-- Modules -->
-    <div class="row g-4">
-
-        <!-- Catégorie -->
-        <div class="col-md-4 col-sm-6">
-            <div class="card card-module shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-box text-primary mb-3"><i class="bi bi-grid-3x3-gap-fill"></i></div>
-                    <h5 class="fw-bold">Catégories</h5>
-                    <p class="text-muted small">Gérer les catégories de produits (lunettes, lentilles, accessoires…)</p>
-                    <a href="categorie/categorie_list.php" class="btn btn-primary btn-sm mt-2">
-                        <i class="bi bi-arrow-right-circle"></i> Accéder
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Fournisseur -->
-        <div class="col-md-4 col-sm-6">
-            <div class="card card-module shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-box text-success mb-3"><i class="bi bi-truck"></i></div>
-                    <h5 class="fw-bold">Fournisseurs</h5>
-                    <p class="text-muted small">Gérer les fournisseurs : coordonnées, responsables, villes…</p>
-                    <a href="fournisseur/fournisseur_list.php" class="btn btn-success btn-sm mt-2">
-                        <i class="bi bi-arrow-right-circle"></i> Accéder
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Marque -->
-        <div class="col-md-4 col-sm-6">
-            <div class="card card-module shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-box text-warning mb-3"><i class="bi bi-award-fill"></i></div>
-                    <h5 class="fw-bold">Marques</h5>
-                    <p class="text-muted small">Gérer les marques : Ray-Ban, Essilor, Zeiss, Hoya…</p>
-                    <a href="marque/marque_list.php" class="btn btn-warning btn-sm mt-2">
-                        <i class="bi bi-arrow-right-circle"></i> Accéder
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Verre -->
-        <div class="col-md-4 col-sm-6">
-            <div class="card card-module shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-box text-info mb-3"><i class="bi bi-circle-half"></i></div>
-                    <h5 class="fw-bold">Verres</h5>
-                    <p class="text-muted small">Gérer les verres optiques : type, indice, traitement, prix…</p>
-                    <a href="verre/verre_list.php" class="btn btn-info btn-sm mt-2 text-white">
-                        <i class="bi bi-arrow-right-circle"></i> Accéder
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Monture -->
-        <div class="col-md-4 col-sm-6">
-            <div class="card card-module shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-box text-danger mb-3"><i class="bi bi-eyeglasses"></i></div>
-                    <h5 class="fw-bold">Montures</h5>
-                    <p class="text-muted small">Gérer le stock de montures : modèles, couleurs, matériaux, prix…</p>
-                    <a href="monture/monture_list.php" class="btn btn-danger btn-sm mt-2">
-                        <i class="bi bi-arrow-right-circle"></i> Accéder
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lentille -->
-        <div class="col-md-4 col-sm-6">
-            <div class="card card-module shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-box mb-3" style="color:#6f42c1;"><i class="bi bi-bullseye"></i></div>
-                    <h5 class="fw-bold">Lentilles</h5>
-                    <p class="text-muted small">Gérer les lentilles de contact : type, correction, matériau…</p>
-                    <a href="lentille/lentille_list.php" class="btn btn-sm mt-2 text-white" style="background:#6f42c1;">
-                        <i class="bi bi-arrow-right-circle"></i> Accéder
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Opticien -->
-        <div class="col-md-4 col-sm-6">
-            <div class="card card-module shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-box text-secondary mb-3"><i class="bi bi-shop"></i></div>
-                    <h5 class="fw-bold">Opticiens</h5>
-                    <p class="text-muted small">Gérer les opticiens partenaires : magasins, licences, statut…</p>
-                    <a href="opticien/opticien_list.php" class="btn btn-secondary btn-sm mt-2">
-                        <i class="bi bi-arrow-right-circle"></i> Accéder
-                    </a>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /row -->
-
-    <footer class="text-center text-muted mt-5 pb-3 small">
-        OPTI CLOUD &copy; <?php echo date('Y'); ?> — Système de gestion cabinet opticien
-    </footer>
 </div>
 
-</body>
-</html>
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+
+    <div class="card-dark">
+        <div class="card-header"><i class="bi bi-cart3 me-2"></i>Dernières ventes</div>
+        <div style="overflow-x:auto;">
+            <table class="table-dark-custom">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php
+                $ventes = mysqli_query($con, "SELECT v.*, CONCAT(p.prenom,' ',p.nom) AS patient_nom
+                    FROM vente v
+                    JOIN patient p ON p.id = v.patient_id
+                    ORDER BY v.id DESC LIMIT 8");
+                if ($ventes && mysqli_num_rows($ventes) > 0):
+                    while($v = mysqli_fetch_assoc($ventes)):
+                ?>
+                <tr>
+                    <td class="primary-col"><?php echo htmlspecialchars($v['patient_nom']); ?></td>
+                    <td><?php echo $v['date_vente']; ?></td>
+                    <td><?php echo number_format($v['montant_total'],2); ?> DH</td>
+                    <td>
+                        <?php
+                        $badges = array('paye'=>'badge-green','partiel'=>'badge-blue','impaye'=>'badge-red');
+                        $labels = array('paye'=>'Payé','partiel'=>'Partiel','impaye'=>'Impayé');
+                        $s = $v['statut'];
+                        echo '<span class="'.$badges[$s].'">'.$labels[$s].'</span>';
+                        ?>
+                    </td>
+                </tr>
+                <?php endwhile; else: ?>
+                <tr><td colspan="4" style="text-align:center; color:#475569; padding:20px;">Aucune vente enregistrée</td></tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-dark">
+        <div class="card-header"><i class="bi bi-calendar-check me-2"></i>RDV du jour</div>
+        <div style="padding:8px 0;">
+        <?php
+        $rdvs = mysqli_query($con, "SELECT r.*, CONCAT(p.prenom,' ',p.nom) AS patient_nom
+            FROM rendezvous r
+            JOIN patient p ON p.id = r.patient_id
+            WHERE r.date_rdv = CURDATE()
+            ORDER BY r.heure_rdv ASC LIMIT 8");
+        if ($rdvs && mysqli_num_rows($rdvs) > 0):
+            while($r = mysqli_fetch_assoc($rdvs)):
+        ?>
+        <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #1a1d29;">
+            <div style="background:#1e3a5f; color:#60a5fa; border-radius:6px; padding:4px 8px; font-size:12px; font-weight:600; flex-shrink:0;">
+                <?php echo substr($r['heure_rdv'],0,5); ?>
+            </div>
+            <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; color:#e2e8f0;"><?php echo htmlspecialchars($r['patient_nom']); ?></div>
+                <div style="font-size:11px; color:#475569;"><?php echo htmlspecialchars($r['motif']); ?></div>
+            </div>
+        </div>
+        <?php endwhile; else: ?>
+        <div style="text-align:center; color:#475569; padding:20px; font-size:13px;">Aucun RDV aujourd'hui</div>
+        <?php endif; ?>
+        </div>
+    </div>
+
+</div>
+
+<?php require("layout_end.php"); ?>

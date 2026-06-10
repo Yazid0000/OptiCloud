@@ -1,41 +1,65 @@
 <?php
 require("../auth.php");
 require("../connexion.php");
-require("../fonctions.php");
-$id    = isset($_GET['id']) ? $_GET['id'] : '';
-$id_esc= mysqli_real_escape_string($con, $id);
-$res   = mysqli_query($con, "SELECT * FROM marque WHERE idmarque='$id_esc'");
-$dataS = mysqli_fetch_assoc($res);
-if (!$dataS) { redirection("marque_list.php"); }
+
+$page_title      = "Modifier une marque";
+$page_breadcrumb = "Stock / Marques / <span>Modifier</span>";
+
+$erreur = "";
+$succes = "";
+
+$id  = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$res = mysqli_query($con, "SELECT * FROM marque WHERE id = $id");
+if (!$res || mysqli_num_rows($res) === 0) {
+    header("Location: marque_list.php");
+    exit();
+}
+$marque = mysqli_fetch_assoc($res);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nom = isset($_POST['nom_marque']) ? trim($_POST['nom_marque']) : '';
+    if ($nom === '') {
+        $erreur = "Le nom de la marque est obligatoire.";
+    } else {
+        $nom_s = mysqli_real_escape_string($con, $nom);
+        mysqli_query($con, "UPDATE marque SET nom_marque='$nom_s' WHERE id=$id");
+        $succes = "Marque modifiée avec succès.";
+        $marque['nom_marque'] = $nom;
+    }
+}
+
+require("../layout.php");
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="utf-8"><title>Modifier Marque</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container mt-5">
-<div class="card shadow col-md-7 mx-auto">
-    <div class="card-header bg-warning text-dark"><h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Modifier Marque</h4></div>
-    <div class="card-body">
-        <form method="post" action="marque_update.php">
-            <input type="hidden" name="idmarque" value="<?php echo htmlspecialchars($dataS['idmarque']); ?>">
-            <div class="mb-3"><label class="form-label fw-bold">ID (non modifiable)</label>
-                <input type="text" class="form-control bg-light" value="<?php echo htmlspecialchars($dataS['idmarque']); ?>" disabled></div>
-            <div class="mb-3"><label class="form-label fw-bold">Nom <span class="text-danger">*</span></label>
-                <input type="text" name="nom" class="form-control" value="<?php echo htmlspecialchars($dataS['nom']); ?>" required></div>
-            <div class="mb-3"><label class="form-label fw-bold">Pays</label>
-                <input type="text" name="pays" class="form-control" value="<?php echo htmlspecialchars($dataS['pays']); ?>"></div>
-            <div class="mb-3"><label class="form-label fw-bold">Description</label>
-                <textarea name="description" class="form-control" rows="2"><?php echo htmlspecialchars($dataS['description']); ?></textarea></div>
-            <div class="d-flex justify-content-between">
-                <a href="marque_list.php" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
-                <button type="submit" class="btn btn-warning"><i class="bi bi-save"></i> Enregistrer</button>
-            </div>
-        </form>
+
+<div style="max-width:600px;">
+    <div class="card-dark">
+        <div class="card-header"><i class="bi bi-pencil me-2"></i>Modifier la marque</div>
+        <div style="padding:20px;">
+
+            <?php if ($erreur): ?>
+                <div class="alert-dark-danger mb-3"><?php echo $erreur; ?></div>
+            <?php endif; ?>
+            <?php if ($succes): ?>
+                <div class="alert-dark-success mb-3"><?php echo $succes; ?></div>
+            <?php endif; ?>
+
+            <form method="POST" class="form-dark">
+                <div class="mb-3">
+                    <label class="form-label">Nom de la marque *</label>
+                    <input type="text" name="nom_marque" class="form-control"
+                           value="<?php echo htmlspecialchars($marque['nom_marque']); ?>">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary-dark">
+                        <i class="bi bi-check-lg"></i> Enregistrer
+                    </button>
+                    <a href="marque_list.php" class="btn-secondary-dark">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
-</div>
-</body></html>
-<?php mysqli_close($con); ?>
+
+<?php require("../layout_end.php"); ?>

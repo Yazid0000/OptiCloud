@@ -1,73 +1,69 @@
 <?php
 require("../auth.php");
 require("../connexion.php");
-$r = "SELECT mo.*, ma.nom AS nommarque, f.nom AS nomfournisseur, c.nomcategorie
-      FROM monture mo
-      LEFT JOIN marque ma ON mo.idmarque=ma.idmarque
-      LEFT JOIN fournisseur f ON mo.idfournisseur=f.idfournisseur
-      LEFT JOIN categorie c ON mo.idcategorie=c.idcategorie
-      ORDER BY mo.idmonture";
-$res    = mysqli_query($con, $r);
-$nombre = mysqli_num_rows($res);
+
+$page_title      = "Montures";
+$page_breadcrumb = "Stock / <span>Montures</span>";
+$btn_action      = "Ajouter une monture";
+$btn_action_url  = "monture/ajouter_form.php";
+
+$liste = mysqli_query($con, "SELECT m.*, c.nom_categorie, ma.nom_marque
+    FROM monture m
+    LEFT JOIN categorie c ON c.id = m.id_categorie
+    LEFT JOIN marque ma ON ma.id = m.id_marque
+    ORDER BY m.id DESC");
+
+require("../layout.php");
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="utf-8"><title>Liste des montures</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container-fluid mt-4 px-4">
-<div class="card shadow">
-    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-        <h4 class="mb-0"><i class="bi bi-eyeglasses me-2"></i>Liste des montures</h4>
-        <div>
-            <a href="../index.php" class="btn btn-outline-light btn-sm me-1"><i class="bi bi-house"></i> Accueil</a>
-            <a href="ajouter_form.php" class="btn btn-light btn-sm me-1"><i class="bi bi-plus-circle"></i> Ajouter</a>
-            <a href="monture_print.php" class="btn btn-warning btn-sm"><i class="bi bi-printer"></i> Imprimer</a>
-        </div>
-    </div>
-    <div class="card-body">
-        <p class="fw-bold">Nombre de montures : <span class="badge bg-secondary"><?php echo $nombre; ?></span></p>
-        <div class="table-responsive">
-        <table class="table table-bordered table-hover table-striped align-middle small">
-            <thead class="table-dark text-center">
-                <tr><th>ID</th><th>Ref</th><th>Modele</th><th>Genre</th><th>Couleur</th><th>Materiau</th><th>Prix MAD</th><th>Stock</th><th>Marque</th><th>Fournisseur</th><th>Categorie</th><th>Actions</th></tr>
+
+<div class="card-dark">
+    <div class="card-header"><i class="bi bi-eyeglasses me-2"></i>Liste des montures</div>
+    <div style="overflow-x:auto;">
+        <table class="table-dark-custom">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Référence</th>
+                    <th>Catégorie</th>
+                    <th>Marque</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
             </thead>
             <tbody>
-            <?php while ($d = mysqli_fetch_assoc($res)) {
-                $genre = $d['genre'];
-                $badgeColor = array('homme'=>'primary','femme'=>'danger','enfant'=>'success','mixte'=>'secondary');
-                $bc = isset($badgeColor[$genre]) ? $badgeColor[$genre] : 'dark';
-                $stock = $d['stock'];
-                $sc = ($stock <= 3) ? 'badge bg-danger' : (($stock <= 10) ? 'badge bg-warning text-dark' : 'badge bg-success');
-                $nommarque     = isset($d['nommarque'])     ? $d['nommarque']     : $d['idmarque'];
-                $nomfournisseur= isset($d['nomfournisseur'])? $d['nomfournisseur']: '-';
-                $nomcategorie  = isset($d['nomcategorie'])  ? $d['nomcategorie']  : '-';
-            ?>
+            <?php if ($liste && mysqli_num_rows($liste) > 0):
+                while($row = mysqli_fetch_assoc($liste)): ?>
             <tr>
-                <td class="text-center fw-bold"><?php echo $d['idmonture']; ?></td>
-                <td><?php echo htmlspecialchars($d['reference']); ?></td>
-                <td><?php echo htmlspecialchars($d['modele']); ?></td>
-                <td><span class="badge bg-<?php echo $bc; ?>"><?php echo ucfirst($genre); ?></span></td>
-                <td><?php echo htmlspecialchars($d['couleur']); ?></td>
-                <td><?php echo htmlspecialchars($d['materiau']); ?></td>
-                <td class="text-end fw-bold"><?php echo number_format($d['prix'],2,',',' '); ?></td>
-                <td class="text-center"><span class="<?php echo $sc; ?>"><?php echo $stock; ?></span></td>
-                <td><?php echo htmlspecialchars($nommarque); ?></td>
-                <td><?php echo htmlspecialchars($nomfournisseur); ?></td>
-                <td><?php echo htmlspecialchars($nomcategorie); ?></td>
-                <td class="text-center">
-                    <a href="monture_modifier.php?id=<?php echo $d['idmonture']; ?>" class="btn btn-sm btn-success"><i class="bi bi-pencil-square"></i></a>
-                    <a href="monture_confirm.php?id=<?php echo $d['idmonture']; ?>" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                <td><?php echo $row['id']; ?></td>
+                <td class="primary-col"><?php echo htmlspecialchars($row['ref_monture']); ?></td>
+                <td><?php echo htmlspecialchars($row['nom_categorie']); ?></td>
+                <td><?php echo htmlspecialchars($row['nom_marque']); ?></td>
+                <td><?php echo number_format($row['prix_monture'], 2); ?> DH</td>
+                <td>
+                    <?php if ($row['stock'] < 5): ?>
+                        <span class="badge-orange"><i class="bi bi-exclamation-triangle me-1"></i><?php echo $row['stock']; ?></span>
+                    <?php else: ?>
+                        <span class="badge-green"><?php echo $row['stock']; ?></span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <a href="monture_modifier.php?id=<?php echo $row['id']; ?>" class="btn-secondary-dark" style="margin-right:6px;">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    <a href="monture_delete.php?id=<?php echo $row['id']; ?>"
+                       class="btn-danger-dark"
+                       onclick="return confirm('Supprimer cette monture ?')">
+                        <i class="bi bi-trash"></i> Supprimer
+                    </a>
                 </td>
             </tr>
-            <?php } ?>
+            <?php endwhile; else: ?>
+            <tr><td colspan="7" style="text-align:center; color:#475569; padding:20px;">Aucune monture trouvée</td></tr>
+            <?php endif; ?>
             </tbody>
         </table>
-        </div>
     </div>
 </div>
-</div>
-</body></html>
-<?php mysqli_close($con); ?>
+
+<?php require("../layout_end.php"); ?>

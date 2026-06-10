@@ -1,10 +1,12 @@
 <?php
+require("../auth.php");
 require("../connexion.php");
-require("../fonctions.php");
 $id = intval(isset($_GET['id']) ? $_GET['id'] : 0);
-$stmt = mysqli_prepare($con, "DELETE FROM opticien WHERE idopticien = ?");
-mysqli_stmt_bind_param($stmt, "i", $id);
-mysqli_stmt_execute($stmt);
-mysqli_stmt_close($stmt);
-mysqli_close($con);
-redirection("opticien_list.php");
+if ($id > 0) {
+    $stmt = mysqli_prepare($con, "DELETE FROM opticien WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+}
+header("Location: opticien_list.php");
+exit();

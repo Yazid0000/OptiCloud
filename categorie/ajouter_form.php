@@ -1,50 +1,56 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <title>Ajouter Catégorie</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container mt-5">
-    <div class="card shadow col-md-6 mx-auto">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Ajouter une Catégorie</h4>
-        </div>
-        <div class="card-body">
-            <form method="post" action="categorie_add.php">
+<?php
+require("../auth.php");
+require("../connexion.php");
 
+$page_title      = "Ajouter une catégorie";
+$page_breadcrumb = "Stock / Catégories / <span>Ajouter</span>";
+
+$erreur = "";
+$succes = "";
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nom = isset($_POST['nom_categorie']) ? trim($_POST['nom_categorie']) : '';
+    if ($nom === '') {
+        $erreur = "Le nom de la catégorie est obligatoire.";
+    } else {
+        $nom_safe = mysqli_real_escape_string($con, $nom);
+        mysqli_query($con, "INSERT INTO categorie (nom_categorie) VALUES ('$nom_safe')");
+        $succes = "Catégorie ajoutée avec succès.";
+    }
+}
+
+require("../layout.php");
+?>
+
+<div style="max-width:600px;">
+    <div class="card-dark">
+        <div class="card-header"><i class="bi bi-plus-circle me-2"></i>Nouvelle catégorie</div>
+        <div style="padding:20px;">
+
+            <?php if ($erreur): ?>
+                <div class="alert-dark-danger mb-3"><?php echo $erreur; ?></div>
+            <?php endif; ?>
+            <?php if ($succes): ?>
+                <div class="alert-dark-success mb-3"><?php echo $succes; ?></div>
+            <?php endif; ?>
+
+            <form method="POST" class="form-dark">
                 <div class="mb-3">
-                    <label class="form-label fw-bold">ID Catégorie <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                        <input type="text" name="idcategorie" class="form-control"
-                               placeholder="Ex: CAT09" maxlength="10" required>
-                    </div>
-                    <small class="text-muted">Maximum 10 caractères (ex: CAT09)</small>
+                    <label class="form-label">Nom de la catégorie</label>
+                    <input type="text" name="nom_categorie" class="form-control"
+                           placeholder="Ex: Montures enfants" autofocus>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Nom Catégorie <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-tag"></i></span>
-                        <input type="text" name="nomcategorie" class="form-control"
-                               placeholder="Ex: Lunettes de vue" maxlength="100" required>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between">
-                    <a href="categorie_list.php" class="btn btn-secondary">
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary-dark">
+                        <i class="bi bi-check-lg"></i> Enregistrer
+                    </button>
+                    <a href="categorie_list.php" class="btn-secondary-dark">
                         <i class="bi bi-arrow-left"></i> Retour
                     </a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-save"></i> Enregistrer
-                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-</body>
-</html>
+
+<?php require("../layout_end.php"); ?>

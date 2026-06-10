@@ -1,10 +1,12 @@
 <?php
+require("../auth.php");
 require("../connexion.php");
-require("../fonctions.php");
-$id = isset($_GET['id']) ? $_GET['id'] : '';
-$stmt = mysqli_prepare($con, "DELETE FROM verre WHERE idverre = ?");
-mysqli_stmt_bind_param($stmt, "s", $id);
-mysqli_stmt_execute($stmt);
-mysqli_stmt_close($stmt);
-mysqli_close($con);
-redirection("verre_list.php");
+$id = intval(isset($_GET['id']) ? $_GET['id'] : 0);
+if ($id > 0) {
+    $stmt = mysqli_prepare($con, "DELETE FROM verre WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+}
+header("Location: verre_list.php");
+exit();

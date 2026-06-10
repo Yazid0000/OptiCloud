@@ -1,58 +1,69 @@
 <?php
 require("../auth.php");
 require("../connexion.php");
-$r = "SELECT v.*, m.nom AS nommarque FROM verre v LEFT JOIN marque m ON v.idmarque=m.idmarque ORDER BY v.idverre";
-$res    = mysqli_query($con, $r);
-$nombre = mysqli_num_rows($res);
+
+$page_title      = "Verres";
+$page_breadcrumb = "Stock / <span>Verres</span>";
+$btn_action      = "Ajouter un verre";
+$btn_action_url  = "verre/ajouter_form.php";
+
+$liste = mysqli_query($con, "SELECT v.*, c.nom_categorie, m.nom_marque
+    FROM verre v
+    LEFT JOIN categorie c ON c.id = v.id_categorie
+    LEFT JOIN marque m ON m.id = v.id_marque
+    ORDER BY v.id DESC");
+
+require("../layout.php");
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="utf-8"><title>Liste des verres</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container-fluid mt-4 px-4">
-<div class="card shadow">
-    <div class="card-header text-white d-flex justify-content-between align-items-center" style="background:#17a2b8;">
-        <h4 class="mb-0"><i class="bi bi-circle-half me-2"></i>Liste des verres</h4>
-        <div>
-            <a href="../index.php" class="btn btn-outline-light btn-sm me-1"><i class="bi bi-house"></i> Accueil</a>
-            <a href="ajouter_form.php" class="btn btn-light btn-sm me-1"><i class="bi bi-plus-circle"></i> Ajouter</a>
-            <a href="verre_print.php" class="btn btn-warning btn-sm"><i class="bi bi-printer"></i> Imprimer</a>
-        </div>
-    </div>
-    <div class="card-body">
-        <p class="fw-bold">Nombre de verres : <span class="badge bg-secondary"><?php echo $nombre; ?></span></p>
-        <div class="table-responsive">
-        <table class="table table-bordered table-hover table-striped align-middle">
-            <thead class="table-dark text-center">
-                <tr><th>ID</th><th>Nom</th><th>Type</th><th>Indice</th><th>Traitement</th><th>Prix MAD</th><th>Marque</th><th>Description</th><th>Actions</th></tr>
+
+<div class="card-dark">
+    <div class="card-header"><i class="bi bi-circle-half me-2"></i>Liste des verres</div>
+    <div style="overflow-x:auto;">
+        <table class="table-dark-custom">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Référence</th>
+                    <th>Catégorie</th>
+                    <th>Marque</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
             </thead>
             <tbody>
-            <?php while ($d = mysqli_fetch_assoc($res)) {
-                $nommarque = isset($d['nommarque']) ? $d['nommarque'] : $d['idmarque'];
-            ?>
+            <?php if ($liste && mysqli_num_rows($liste) > 0):
+                while($row = mysqli_fetch_assoc($liste)): ?>
             <tr>
-                <td class="text-center fw-bold"><?php echo htmlspecialchars($d['idverre']); ?></td>
-                <td><?php echo htmlspecialchars($d['nom']); ?></td>
-                <td><span class="badge bg-info text-dark"><?php echo htmlspecialchars($d['type']); ?></span></td>
-                <td class="text-center"><?php echo htmlspecialchars($d['indice']); ?></td>
-                <td><?php echo htmlspecialchars($d['traitement']); ?></td>
-                <td class="text-end fw-bold"><?php echo number_format($d['prix'],2,',',' '); ?></td>
-                <td><?php echo htmlspecialchars($nommarque); ?></td>
-                <td class="text-muted small"><?php echo htmlspecialchars($d['description']); ?></td>
-                <td class="text-center">
-                    <a href="verre_modifier.php?id=<?php echo urlencode($d['idverre']); ?>" class="btn btn-sm btn-success"><i class="bi bi-pencil-square"></i></a>
-                    <a href="verre_confirm.php?id=<?php echo urlencode($d['idverre']); ?>" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                <td><?php echo $row['id']; ?></td>
+                <td class="primary-col"><?php echo htmlspecialchars($row['ref_verre']); ?></td>
+                <td><?php echo htmlspecialchars($row['nom_categorie']); ?></td>
+                <td><?php echo htmlspecialchars($row['nom_marque']); ?></td>
+                <td><?php echo number_format($row['prix_verre'], 2); ?> DH</td>
+                <td>
+                    <?php if ($row['stock'] < 5): ?>
+                        <span class="badge-orange"><i class="bi bi-exclamation-triangle me-1"></i><?php echo $row['stock']; ?></span>
+                    <?php else: ?>
+                        <span class="badge-green"><?php echo $row['stock']; ?></span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <a href="verre_modifier.php?id=<?php echo $row['id']; ?>" class="btn-secondary-dark" style="margin-right:6px;">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    <a href="verre_delete.php?id=<?php echo $row['id']; ?>"
+                       class="btn-danger-dark"
+                       onclick="return confirm('Supprimer ce verre ?')">
+                        <i class="bi bi-trash"></i> Supprimer
+                    </a>
                 </td>
             </tr>
-            <?php } ?>
+            <?php endwhile; else: ?>
+            <tr><td colspan="7" style="text-align:center; color:#475569; padding:20px;">Aucun verre trouvé</td></tr>
+            <?php endif; ?>
             </tbody>
         </table>
-        </div>
     </div>
 </div>
-</div>
-</body></html>
-<?php mysqli_close($con); ?>
+
+<?php require("../layout_end.php"); ?>
