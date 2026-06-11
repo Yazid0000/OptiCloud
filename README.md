@@ -52,10 +52,10 @@ OPTI CLOUD est une application web développée en **PHP** avec **WAMP Server**,
 ## 📸 Captures d'écran
 
 ### Tableau de bord
-![Tableau de bord](screenshots/men.png)
+![Tableau de bord](screenshots/menu.png)
 
 ### Gestion des patients
-![Patients](screenshots/patien.png)
+![Patients](screenshots/patient.png)
 ![Patients_a](screenshots/patient_a.png)
 ### Nouvelle vente
 ![Ventes_a](screenshots/vente_a.png)
