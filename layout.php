@@ -140,6 +140,11 @@ $base_url = '/www/OPTI_CLOUD_PHP5/';
            class="nav-item <?php echo $current_dir=='commande' ? 'active' : ''; ?>">
             <i class="bi bi-box-seam"></i> Commandes
         </a>
+        <div class="nav-section-title">Impression</div>
+        <a href="<?php echo $base_url; ?>impression/impression.php"
+           class="nav-item <?php echo $current_dir=='impression' ? 'active' : ''; ?>">
+            <i class="bi bi-printer"></i> Imprimer
+        </a>
 
         <div class="nav-section-title">Administration</div>
         <a href="<?php echo $base_url; ?>utilisateur/utilisateur_list.php"
